@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGPA Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #add8e6; /* Light blue background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 24px;
+        }
+        .college-logo {
+            width: 150px;
+            margin: 10px auto;
+            display: block;
+        }
+        .semester-group {
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .course-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .course-group input {
+            width: 40%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .add-course, .add-semester, .submit-btn, .clear-btn {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+        .submit-btn {
+            background-color: #2196F3; /* Blue button for submission */
+        }
+        .clear-btn {
+            background-color: #f44336; /* Red button for clearing */
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+            color: #333;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .result-table th, .result-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Display the college logo here -->
+<img src="file:///android_asset/college_logo.jpg" alt="College Logo" class="college-logo">
+
+<div class="container">
+    <h1>KRCT CGPA Calculator (REG 2020)</h1>
+
+    <!-- Input for name and register number -->
+    <input type="text" id="studentName" placeholder="Enter Student Name" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+    <input type="text" id="registerNo" placeholder="Enter Register Number" required style="width: 100%; padding: 8px; margin-bottom: 20px;">
+
+    <!-- Semester and course input section -->
+    <div id="semesters">
+        <div class="semester-group" id="semester1">
+            <h2>Semester 1</h2>
+            <div class="course-group">
+                <input type="number" step="0.01" placeholder="Grade Point" required>
+                <input type="number" step="0.5" placeholder="Credits" required>
+                <button onclick="deleteCourse(this)">Delete</button>
+            </div>
+            <!-- The Add Course button for Semester 1 -->
+            <button class="add-course" onclick="addCourse(1)">Add Course to Semester 1</button>
+        </div>
+    </div>
+
+    <button class="add-semester" onclick="addSemester()">Add Another Semester</button>
+    <button class="submit-btn" onclick="submitCGPA()">Submit</button>
+    <button class="clear-btn" onclick="clearFields()">Clear</button>
+
+    <!-- Result section -->
+    <div id="result" class="result"></div>
+</div>
+
+<script>
+    let semesterCount = 1;
+
+    function addCourse(semesterId) {
+        const semesterDiv = document.getElementById(`semester${semesterId}`);
+        const courseDiv = document.createElement("div");
+        courseDiv.className = "course-group";
+        courseDiv.innerHTML = `
+            <input type="number" step="0.01" placeholder="Grade Point" required>
+            <input type="number" step="0.5" placeholder="Credits" required>
+            <button onclick="deleteCourse(this)">Delete</button>
+        `;
+        semesterDiv.insertBefore(courseDiv, semesterDiv.querySelector('.add-course'));
+    }
+
+    function addSemester() {
+        semesterCount++;
+        const semestersDiv = document.getElementById("semesters");
+
+        const newSemester = document.createElement("div");
+        newSemester.className = "semester-group";
+        newSemester.id = `semester${semesterCount}`;
+        newSemester.innerHTML = `<h2>Semester ${semesterCount}</h2>`;
+
+        semestersDiv.appendChild(newSemester);
+
+        // Add course input field
+        addCourse(semesterCount);
+
+        // Add "Add Course" button below
+        const addCourseBtn = document.createElement("button");
+        addCourseBtn.className = "add-course";
+        addCourseBtn.onclick = () => addCourse(semesterCount);
+        addCourseBtn.innerText = `Add Course to Semester ${semesterCount}`;
+        newSemester.appendChild(addCourseBtn);
+    }
+
+    function deleteCourse(button) {
+        button.parentElement.remove();
+    }
+
+    function calculateCGPA() {
+        let totalCredits = 0;
+        let totalWeightedGrades = 0;
+        const sgpaList = [];
+
+        for (let i = 1; i <= semesterCount; i++) {
+            let semesterCredits = 0;
+            let semesterWeightedGrades = 0;
+
+            const semester = document.getElementById(`semester${i}`);
+            const courses = semester.querySelectorAll(".course-group");
+
+            courses.forEach(course => {
+                const gradePoint = parseFloat(course.children[0].value);
+                const credits = parseFloat(course.children[1].value);
+
+                // Check for negative or invalid inputs
+                if (isNaN(gradePoint) || isNaN(credits) || gradePoint < 0 || credits < 0) {
+                    alert('Invalid input detected. Please ensure grade points and credits are positive numbers.');
+                    return; // Skip this course if input is invalid
+                }
+
+                semesterCredits += credits;
+                semesterWeightedGrades += gradePoint * credits;
+            });
+
+            if (semesterCredits > 0) {
+                const sgpa = (semesterWeightedGrades / semesterCredits).toFixed(2);
+                sgpaList.push(sgpa);
+                totalCredits += semesterCredits;
+                totalWeightedGrades += semesterWeightedGrades;
+            }
+        }
+
+        const cgpa = totalCredits ? (totalWeightedGrades / totalCredits) : 0;
+        return { cgpa, sgpaList };
+    }
+
+    function submitCGPA() {
+        const studentName = document.getElementById("studentName").value;
+        const registerNo = document.getElementById("registerNo").value;
+        const { cgpa, sgpaList } = calculateCGPA();
+
+        if (!studentName || !registerNo) {
+            alert("Please enter both student name and register number.");
+            return;
+        }
+
+        let resultHtml = `
+            <table class="result-table">
+                <tr><th>Name</th><td>${studentName}</td></tr>
+                <tr><th>Register No</th><td>${registerNo}</td></tr>
+                <tr><th>CGPA</th><td>${cgpa.toFixed(2)}</td></tr>
+                <tr><th>SGPA</th><td>${sgpaList.join(", ")}</td></tr>
+            </table>
+        `;
+
+        document.getElementById("result").innerHTML = resultHtml;
+    }
+
+    function clearFields() {
+        // Reset all input fields
+        document.getElementById("studentName").value = '';
+        document.getElementById("registerNo").value = '';
+        const semestersDiv = document.getElementById("semesters");
+        semestersDiv.innerHTML = '';  // Clear all semesters
+        semesterCount = 0;  // Reset semester counter
+        addSemester();  // Add first semester back
+        document.getElementById("result").innerHTML = ''; // Clear result
+    }
+</script>
+
+</body>
+</html>

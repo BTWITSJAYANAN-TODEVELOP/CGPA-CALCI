@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.cgpacalci">
+
+    <!-- Permission to use internet (if needed for your webview app) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="CGPA Calci"
+        android:theme="@style/Theme.CGPACalci">
+
+        <!-- Splash Screen Activity -->
+        <activity
+            android:name=".SplashScreenActivity"
+            android:exported="true"> <!-- Make it exported if it's the entry point for the app -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Main Activity for the app (WebView) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+        </activity>
+
+    </application>
+
+</manifest>
